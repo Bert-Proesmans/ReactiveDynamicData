@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using DynamicData;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -28,14 +29,17 @@ namespace ReactiveDynamicData
                 .Throttle(TimeSpan.FromMilliseconds(800))
                 .Select(term => term?.Trim() ?? string.Empty)
                 .DistinctUntilChanged()
+                .SelectMany(term => term.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                .ToObservableChangeSet()
+                .ToCollection()
                 .SelectMany(DoThing)
                 .ObserveOnDispatcher()
                 .ToProperty(this, @this => @this.SearchResults);
         }
 
-        private async Task<IEnumerable<OptionsModel>> DoThing(string term, CancellationToken token)
+        private async Task<IEnumerable<OptionsModel>> DoThing(/*string term*/ IEnumerable<string> queries, CancellationToken token)
         {
-            var queries = term.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+           //  var queries = term.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
             var items = queries.Select(q => new OptionsModel()
             {
                 Code = Guid.NewGuid().ToString(),
