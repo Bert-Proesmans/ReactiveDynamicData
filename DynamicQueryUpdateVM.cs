@@ -75,6 +75,43 @@ namespace ReactiveDynamicData
            })
                 .Select(x => x.Item2);
         }
+
+        public static IObservable<IList<OptionsModel>> FlattenChangeList(this IObservable<IChangeSet<IList<OptionsModel>>> source)
+        {
+            return source.Scan((List<OptionsModel>)null, (cache, changes) =>
+            {
+                if (cache == null)
+                    cache = new List<OptionsModel>(changes.Count);
+
+                foreach (var change in changes)
+                {
+                    switch (change.Reason)
+                    {
+                        case ListChangeReason.Add:
+                            {
+                                cache.AddRange(change.Item.Current, change.Item.CurrentIndex);
+                            }
+                            break;
+                        case ListChangeReason.AddRange:
+                            {
+                                cache.AddRange(change.Range.SelectMany(x => x), change.Range.Index);
+                            }
+                            break;
+                        //case ListChangeReason.Remove:
+                        //    {
+                        //        cache.RemoveMany(change.Item.Current);
+                        //    }
+                        //    break;
+                        //case ListChangeReason.RemoveRange:
+                        //    {
+                        //        cache.RemoveMany(change.Range.SelectMany(x => x));
+                        //    }
+                        //    break;
+                    }
+                }
+                return cache;
+            });
+        }
     }
 
     public class DynamicQueryUpdateVM : ReactiveObject
@@ -98,23 +135,25 @@ namespace ReactiveDynamicData
                 .DistinctUntilChanged()
                 .Select(term => term.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries))
                 .CalculateChanges()
-                .ToCollection()
-                .SelectMany(DoThing)
+                .TransformAsync(DoThing)
+                //.ToCollection()
+                //.SelectMany(DoThing)
+                .FlattenChangeList()
                 .ObserveOnDispatcher()
+                .Select(x => (IEnumerable<OptionsModel>)x)
                 .ToProperty(this, @this => @this.SearchResults);
         }
 
-        private async Task<IEnumerable<OptionsModel>> DoThing(/*string term*/ IEnumerable<string> queries, CancellationToken token)
+        private async Task<IList<OptionsModel>> DoThing(string query/*, CancellationToken token*/)
         {
-            //  var queries = term.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            var items = queries.Select(q => new OptionsModel()
+            var items = new List<OptionsModel>()
             {
-                Code = Guid.NewGuid().ToString(),
-                Name = q
-            })
-                .GroupBy(x => x.Name)
-                .Select(group => group.First())
-                .ToList();
+                new OptionsModel()
+                {
+                    Code = Guid.NewGuid().ToString(),
+                    Name = query,
+                }
+            };
 
             return await Task.FromResult(new ReadOnlyCollection<OptionsModel>(items));
         }

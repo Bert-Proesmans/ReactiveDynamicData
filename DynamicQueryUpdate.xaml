@@ -14,6 +14,8 @@
                  TextWrapping="Wrap"
                  AcceptsReturn="True"
                  VerticalScrollBarVisibility="Visible"/>
-        <DataGrid x:Name="ResultGrid"/>
+        <!-- WARN; ReadOnly is required because the DataGrid detects our usage of a 'normal' list.
+            A normal list can be appended to which causes issues with our reactive chain! -->
+        <DataGrid x:Name="ResultGrid" IsReadOnly="True"/>
     </UniformGrid>
 </reactiveui:ReactiveWindow>
