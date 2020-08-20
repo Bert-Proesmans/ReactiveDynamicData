@@ -1,0 +1,19 @@
+﻿<reactiveui:ReactiveWindow 
+        x:Class="ReactiveDynamicData.MainWindow"
+        x:TypeArguments="local:DynamicQueryUpdateVM"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:reactiveui="http://reactiveui.net"
+        xmlns:local="clr-namespace:ReactiveDynamicData"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <UniformGrid Rows="1">
+        <TextBox x:Name="QueryInput"
+                 TextWrapping="Wrap"
+                 AcceptsReturn="True"
+                 VerticalScrollBarVisibility="Visible"/>
+        <DataGrid x:Name="ResultGrid"/>
+    </UniformGrid>
+</reactiveui:ReactiveWindow>
